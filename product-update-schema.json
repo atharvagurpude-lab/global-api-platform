@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ProductUpdateRequest",
+  "type": "object",
+  "required": [
+    "name",
+    "price",
+    "category"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "price": {
+      "type": "number",
+      "minimum": 0
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
