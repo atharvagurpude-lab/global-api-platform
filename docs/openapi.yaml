@@ -2,22 +2,67 @@ openapi: 3.0.3
 
 info:
   title: Global Product API
-  description: API for managing products
-  version: 1.0.0
+  description: |
+    API for managing products.
+
+    This API supports two versions:
+    - v1: Original API version. Deprecated and scheduled for sunset.
+    - v2: Current API version with explicit API version information in responses.
+  version: 2.0.0
+
+servers:
+  - url: https://33lcughpwj.execute-api.ap-south-1.amazonaws.com/prod
+    description: v1 - Production
+  - url: https://33lcughpwj.execute-api.ap-south-1.amazonaws.com/v2
+    description: v2 - Production
+
+tags:
+  - name: Products
+    description: Product management operations
 
 paths:
 
   /products:
     get:
+      tags:
+        - Products
       summary: List all products
+      description: |
+        Returns all products.
+
+        v1 responses include deprecation signalling.
+        v2 responses include an apiVersion field.
       operationId: listProducts
+      security:
+        - bearerAuth: []
+          apiKey: []
       responses:
         '200':
           description: List of products
+          headers:
+            Deprecation:
+              description: Present when using deprecated v1.
+              schema:
+                type: string
+                example: "true"
+            Sunset:
+              description: Planned retirement date for v1.
+              schema:
+                type: string
+                example: "Wed, 30 Dec 2026 23:59:59 GMT"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
 
     post:
+      tags:
+        - Products
       summary: Create a product
       operationId: createProduct
+      security:
+        - bearerAuth: []
+          apiKey: []
       requestBody:
         required: true
         content:
@@ -27,6 +72,12 @@ paths:
       responses:
         '201':
           description: Product created
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
 
   /products/{id}:
     parameters:
@@ -37,17 +88,31 @@ paths:
           type: string
 
     get:
+      tags:
+        - Products
       summary: Get a product
       operationId: getProduct
+      security:
+        - bearerAuth: []
+          apiKey: []
       responses:
         '200':
           description: Product details
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
         '404':
           description: Product not found
 
     put:
+      tags:
+        - Products
       summary: Update a product
       operationId: updateProduct
+      security:
+        - bearerAuth: []
+          apiKey: []
       requestBody:
         required: true
         content:
@@ -57,19 +122,48 @@ paths:
       responses:
         '200':
           description: Product updated
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
         '404':
           description: Product not found
 
     delete:
+      tags:
+        - Products
       summary: Delete a product
       operationId: deleteProduct
+      security:
+        - bearerAuth: []
+          apiKey: []
       responses:
         '204':
           description: Product deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
         '404':
           description: Product not found
 
 components:
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cognito JWT ID token.
+
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API Gateway usage-plan API key.
 
   schemas:
 
@@ -90,3 +184,32 @@ components:
         category:
           type: string
           example: Training
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          example: product-001
+        name:
+          type: string
+          example: AWS Cloud Course
+        price:
+          type: number
+          format: float
+          example: 999
+        category:
+          type: string
+          example: Training
+
+    ProductList:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        apiVersion:
+          type: string
+          description: Present in v2 responses.
+          example: v2
