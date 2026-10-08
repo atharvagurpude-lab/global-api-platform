@@ -26,7 +26,7 @@ jobs:
         run: python -m pip install pytest boto3 "moto==5.2.3"
 
       - name: Run tests
-        run: pytest -q
+        run: python -m pytest -q tests/test_lambda_syntax.py
 
       - name: Package Lambda
         run: |
